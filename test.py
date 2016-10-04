@@ -2,9 +2,13 @@
 
 from bottle import Bottle, run, request, response
 from pprint import pprint
-import sys
+import os,sys
 import hashlib
 import hmac
+from rq import Queue
+from worker import conn
+from reviewer import review
+import json
 
 app = Bottle()
 
@@ -46,7 +50,8 @@ def handle_pull_request_created(pull_request):
     return 'ok: created'
 
 def handle_pull_request_updated(pull_request):
-    pprint(pull_request)
+    pprint(json.dumps(pull_request))
+    Queue(connection=conn).enqueue(review, json.dumps(pull_request))
     return 'ok: updated'
 
 def handle_pull_request_comment_created(comment):
