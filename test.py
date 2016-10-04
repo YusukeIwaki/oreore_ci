@@ -58,4 +58,4 @@ def handle_pull_request_comment_edited(comment):
     return 'ok: comment edited'
 
 port = os.getenv('PORT', 80) if len(sys.argv)<2 else int(sys.argv[1])
-run(app, host='localhost', port=port)
+run(app, host='0.0.0.0', port=port)
