@@ -1,13 +1,20 @@
 # -*- coding:utf-8 -*-
 
-from bottle import Bottle, run, request
+from bottle import Bottle, run, request, response
 from pprint import pprint
 import sys
+import hashlib
+import hmac
 
 app = Bottle()
 
 @app.post('/event_handler')
 def handle_event():
+    if not verify_signature(request.get_header('X-Hub-Signature'), request.body.read()):
+        response.status = 400
+        response.body = 'bad request'
+        return response
+
     payload = request.json
     event_name = request.get_header('X-GitHub-Event')
     if event_name == 'pull_request':
@@ -27,6 +34,12 @@ def handle_event():
             return handle_pull_request_comment_edited(payload['comment'])
 
     return '<b>Hello</b>!'
+
+def verify_signature(signature, payload):
+    if signature:
+        return signature == "sha1="+hmac.new(b'okighoo9eez9eivahQu0ugoishoh2Lah', payload, hashlib.sha1).hexdigest()
+    else:
+        return False
 
 def handle_pull_request_created(pull_request):
     pprint(pull_request)
